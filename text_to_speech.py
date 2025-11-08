@@ -113,8 +113,17 @@ class BVCUTextToSpeech:
             if output_file:
                 self.engine.save_to_file(text, output_file)
                 self.engine.runAndWait()
-                print(f"✓ Audio saved to: {output_file}")
-                return True
+                
+                # Verify file was created
+                import time
+                for i in range(10):  # Wait up to 1 second for file to appear
+                    if os.path.exists(output_file):
+                        print(f"✓ Audio saved to: {output_file}")
+                        return True
+                    time.sleep(0.1)
+                
+                print(f"Warning: File {output_file} may not have been created")
+                return False
             
             # Otherwise, speak the text directly
             print("✓ Synthesis complete. Playing audio...")
