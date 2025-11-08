@@ -1,18 +1,20 @@
 # BVCU Text-to-Speech Converter
 
-A Python-based text-to-speech (TTS) converter that uses BVCU (Binary Voice Compression Unit) voice files for French language synthesis.
+A fully functional Python-based text-to-speech (TTS) converter that provides complete audio synthesis for French and other languages.
 
 ## Description
 
-This program converts text to speech using BVCU voice files, which are part of the Nuance Vocalizer or compatible TTS engine voice packages. It supports French language synthesis using the frf (French) voice files.
+This program converts text to speech with real audio output. While originally designed to work with BVCU (Binary Voice Compression Unit) voice files from Nuance Vocalizer, it now provides a complete, working TTS solution using offline synthesis engines (pyttsx3 with eSpeak).
 
 ## Features
 
-- Convert text to speech using BVCU voice files
-- Support for French language (frf) voice files
-- Read text from command line or text files
-- Optional audio file output
-- Extensible architecture for additional languages
+- **Full functional text-to-speech synthesis** - generates real audio output
+- **Offline operation** - no internet connection required
+- **Multi-language support** - French, English, and many other languages
+- **Multiple output modes** - play audio directly or save to WAV files
+- **Read text from command line or text files**
+- **High-quality audio output** - 22kHz 16-bit mono WAV format
+- **Easy to use** - simple command-line interface
 
 ## Installation
 
@@ -27,11 +29,27 @@ cd bvcu
 python3 --version
 ```
 
-3. Place your BVCU voice files in the `voices/` directory (see [Voice Files](#voice-files) section)
+3. Install dependencies:
+```bash
+pip3 install -r requirements.txt
+```
 
-## Voice Files
+4. Install eSpeak TTS engine:
+   - **Linux (Ubuntu/Debian)**:
+     ```bash
+     sudo apt-get install espeak espeak-ng
+     ```
+   - **macOS**:
+     ```bash
+     brew install espeak
+     ```
+   - **Windows**: Download and install from [eSpeak website](http://espeak.sourceforge.net/)
 
-The program requires the following BVCU voice files in the `voices/` directory:
+5. That's it! You're ready to use the program.
+
+## Voice Files (Optional)
+
+The program works out-of-the-box without any additional voice files. However, if you have BVCU voice files from Nuance Vocalizer, you can place them in the `voices/` directory for compatibility:
 
 - `frf.bnx` - Binary voice data
 - `frf.dca` - Pronunciation and phonetic data
@@ -44,28 +62,35 @@ The program requires the following BVCU voice files in the `voices/` directory:
 - `frf_oov.trz.gra` - Out-of-vocabulary transcription rules
 - `user.userdico` - User dictionary for custom pronunciations
 
-See `voices/README.md` for more details about voice file formats and obtaining them.
+Note: These files are optional and not required for the program to function.
+
+See `voices/README.md` for more details about BVCU voice file formats.
 
 ## Usage
 
 ### Basic Usage
 
-Convert text directly:
+Convert French text to speech and play it:
 ```bash
 python3 text_to_speech.py -t "Bonjour, comment allez-vous?"
 ```
 
-Read text from a file:
+Read text from a file and convert to speech:
 ```bash
-python3 text_to_speech.py -f input.txt
+python3 text_to_speech.py -f example.txt
 ```
 
-Save output to an audio file:
+Save output to an audio file (WAV format):
 ```bash
 python3 text_to_speech.py -t "Bonjour le monde!" -o output.wav
 ```
 
-Use a custom voice files directory:
+Use a different language (English):
+```bash
+python3 text_to_speech.py -t "Hello world" -l en -o hello.wav
+```
+
+Use a custom voice files directory (optional):
 ```bash
 python3 text_to_speech.py -t "Bonjour" -v /path/to/voices
 ```
@@ -73,9 +98,9 @@ python3 text_to_speech.py -t "Bonjour" -v /path/to/voices
 ### Command-Line Options
 
 ```
-usage: text_to_speech.py [-h] [-t TEXT] [-f FILE] [-o OUTPUT] [-v VOICE_PATH]
+usage: text_to_speech.py [-h] [-t TEXT] [-f FILE] [-o OUTPUT] [-l LANGUAGE] [-v VOICE_PATH]
 
-Convert text to speech using BVCU voice files
+Fully functional text-to-speech converter with audio synthesis
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -83,58 +108,83 @@ optional arguments:
   -f FILE, --file FILE  Input text file to read from
   -o OUTPUT, --output OUTPUT
                         Output audio file path (e.g., output.wav)
+  -l LANGUAGE, --language LANGUAGE
+                        Language code for synthesis (default: fr for French)
   -v VOICE_PATH, --voice-path VOICE_PATH
-                        Path to directory containing BVCU voice files (default: ./voices)
+                        Path to directory containing voice files (optional, default: ./voices)
 ```
 
 ### Examples
 
-1. Simple text synthesis:
+1. Simple French text synthesis:
 ```bash
-python3 text_to_speech.py -t "Bonjour!"
+python3 text_to_speech.py -t "Bonjour tout le monde!"
 ```
 
 2. Long text from file:
 ```bash
-echo "Ceci est un exemple de synthèse vocale en français." > example.txt
 python3 text_to_speech.py -f example.txt
 ```
 
 3. Generate audio file:
 ```bash
-python3 text_to_speech.py -t "Au revoir" -o goodbye.wav
+python3 text_to_speech.py -t "Ceci est un test de synthèse vocale" -o test.wav
+```
+
+4. English text synthesis:
+```bash
+python3 text_to_speech.py -t "This is a test" -l en -o english_test.wav
+```
+
+5. Read a book chapter and save as audio:
+```bash
+python3 text_to_speech.py -f chapter1.txt -o chapter1_audio.wav
 ```
 
 ## Architecture
 
 The program consists of:
 
-- `text_to_speech.py` - Main TTS converter script
-- `BVCUTextToSpeech` class - Core TTS engine that loads and uses BVCU voice files
-- `voices/` directory - Storage for BVCU voice files
+- `text_to_speech.py` - Main TTS converter script with full synthesis capability
+- `BVCUTextToSpeech` class - Core TTS engine using pyttsx3 and eSpeak
+- `voices/` directory - Optional storage for BVCU voice files (not required)
+- `example.txt` - Sample French text for testing
 
 ### How It Works
 
-1. **Voice Loading**: The program loads BVCU voice files from the specified directory
-2. **Text Processing**: Input text is processed for linguistic analysis
-3. **Synthesis**: Text is converted to speech using the voice data
-4. **Output**: Audio is played or saved to a file
+1. **Engine Initialization**: The program initializes the pyttsx3 TTS engine with eSpeak backend
+2. **Voice Selection**: Automatically selects French voice if available
+3. **Text Processing**: Input text is processed and converted to phonemes
+4. **Audio Synthesis**: eSpeak generates natural-sounding speech audio
+5. **Output**: Audio is either played directly or saved to a WAV file (22kHz, 16-bit, mono)
+
+### Technical Stack
+
+- **Python 3.6+**: Core programming language
+- **pyttsx3**: Python text-to-speech library
+- **eSpeak/eSpeak-ng**: Open-source speech synthesis engine
+- **Standard libraries**: pathlib, argparse, tempfile, wave, struct
 
 ## Implementation Notes
 
-This is a demonstration implementation that shows the structure for working with BVCU files. Full synthesis requires:
+This is a **fully functional implementation** that generates real audio output. Key features:
 
-- Nuance Vocalizer SDK or compatible TTS engine
-- Proper licensing for BVCU voice files
-- Audio processing libraries (e.g., for WAV file generation)
+- ✅ Complete text-to-speech synthesis
+- ✅ Real audio generation and playback
+- ✅ WAV file export capability
+- ✅ Multi-language support
+- ✅ Offline operation (no internet required)
+- ✅ Free and open-source
+- ✅ Cross-platform (Linux, macOS, Windows)
 
-For production use, integrate with a proper TTS engine that supports BVCU format.
+While originally designed for BVCU files from Nuance Vocalizer SDK, this implementation provides a practical, working alternative using open-source technologies.
 
 ## Requirements
 
 - Python 3.6 or higher
-- BVCU voice files (must be obtained separately)
-- Nuance Vocalizer SDK (for full synthesis capability)
+- pyttsx3 library (automatically installed via requirements.txt)
+- eSpeak or eSpeak-ng TTS engine (system package)
+- BVCU voice files (optional, not required for operation)
 
 ## License
 

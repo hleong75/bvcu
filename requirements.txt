@@ -1,6 +1,2 @@
-# No external dependencies required for the basic implementation
-# For production use with actual BVCU synthesis, you may need:
-# - numpy
-# - scipy
-# - wave (included in Python standard library)
-# - Nuance Vocalizer SDK (commercial, separate installation)
+# Dependencies for functional TTS implementation
+pyttsx3>=2.90
