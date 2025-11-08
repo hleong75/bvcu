@@ -1,0 +1,7 @@
+Bonjour, ceci est un exemple de texte pour la synthèse vocale.
+
+Ce programme permet de convertir du texte en parole en utilisant des fichiers BVCU.
+
+Les fichiers BVCU contiennent les données vocales nécessaires pour la synthèse de la parole en français.
+
+Merci d'utiliser ce programme de synthèse vocale!
