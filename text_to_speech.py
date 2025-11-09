@@ -217,17 +217,38 @@ class BVCUTextToSpeech:
                     # Dictionary data improves pronunciation
                     print(f"✓ Using BVCU dictionary data for enhanced pronunciation")
             
-            # Try to find and set French voice if available
+            # Try to find and set voice matching the specified language
             voices = self.engine.getProperty('voices')
-            if self.language == 'fr':
+            if self.language:
+                # First, try to find an exact language match (e.g., 'fr' matches 'roa/fr')
+                # This ensures we get French (France) for 'fr', not French (Belgium)
+                exact_match = None
+                partial_matches = []
+                
                 for voice in voices:
-                    if 'french' in voice.name.lower() or 'fr' in voice.id.lower():
-                        self.engine.setProperty('voice', voice.id)
-                        if self.bvcu_data and self.bvcu_data['voice_data']:
-                            print(f"✓ Using French voice with BVCU enhancement: {voice.name}")
-                        else:
-                            print(f"✓ Using French voice: {voice.name}")
+                    voice_id_lower = voice.id.lower()
+                    lang_lower = self.language.lower()
+                    
+                    # Check for exact match: language code at end of ID (e.g., 'roa/fr' for 'fr')
+                    if voice_id_lower.endswith('/' + lang_lower):
+                        exact_match = voice
                         break
+                    # Check for language in voice ID or name as fallback
+                    elif lang_lower in voice_id_lower or lang_lower in voice.name.lower():
+                        partial_matches.append(voice)
+                
+                # Use exact match if found, otherwise use first partial match
+                selected_voice = exact_match or (partial_matches[0] if partial_matches else None)
+                
+                if selected_voice:
+                    self.engine.setProperty('voice', selected_voice.id)
+                    if self.bvcu_data and self.bvcu_data['voice_data']:
+                        print(f"✓ Using voice with BVCU enhancement: {selected_voice.name}")
+                    else:
+                        print(f"✓ Using voice: {selected_voice.name}")
+                elif self.language == 'fr':
+                    # Specific fallback message for French
+                    print(f"ℹ French voice not found, using default voice")
             
         except Exception as e:
             print(f"Warning: Could not fully initialize TTS engine: {e}")
