@@ -116,6 +116,82 @@ def test_multiple_dictionaries():
         return True
 
 
+def test_bvcu_file_extension():
+    """Test that .bvcu files are detected and loaded"""
+    print("\n" + "=" * 60)
+    print("TEST 5: .bvcu file extension support")
+    print("=" * 60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        
+        # Create .bvcu files
+        (tmpdir_path / 'frf.bvcu').write_bytes(b'BVCU voice data in .bvcu format')
+        
+        tts = BVCUTextToSpeech(tmpdir, 'fr')
+        
+        # Verify .bvcu file was detected
+        assert 'frf.bvcu' in tts.voice_files, "Should detect frf.bvcu file"
+        assert len(tts.voice_files) == 1, f"Should find 1 voice file, found {len(tts.voice_files)}"
+        
+        # Verify .bvcu data was loaded
+        assert tts.bvcu_data['voice_data'] is not None, "Should have voice data"
+        assert len(tts.bvcu_data['voice_data']) == 31, "Voice data should be 31 bytes"
+        
+        print("✓ TEST PASSED: .bvcu files are properly detected and loaded")
+        return True
+
+
+def test_bvcu_hd_priority():
+    """Test that HD .bvcu files take priority over standard .bvcu files"""
+    print("\n" + "=" * 60)
+    print("TEST 6: HD .bvcu file priority")
+    print("=" * 60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        
+        # Create both standard and HD .bvcu files
+        (tmpdir_path / 'frf.bvcu').write_bytes(b'Standard BVCU')
+        (tmpdir_path / 'frf_hd.bvcu').write_bytes(b'High definition BVCU voice data')
+        
+        tts = BVCUTextToSpeech(tmpdir, 'fr')
+        
+        # Verify HD .bvcu was used (it's larger)
+        assert tts.bvcu_data['voice_data'] is not None, "Should have voice data"
+        assert len(tts.bvcu_data['voice_data']) == 31, "Should use HD .bvcu data (31 bytes)"
+        
+        print("✓ TEST PASSED: HD .bvcu files take priority")
+        return True
+
+
+def test_bvcu_and_bnx_coexistence():
+    """Test that .bvcu and .bnx files can coexist, with larger file taking priority"""
+    print("\n" + "=" * 60)
+    print("TEST 7: .bvcu and .bnx coexistence")
+    print("=" * 60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        
+        # Create both .bvcu (smaller) and .bnx (larger) files
+        (tmpdir_path / 'frf.bvcu').write_bytes(b'Small BVCU')
+        (tmpdir_path / 'frf.bnx').write_bytes(b'Larger BNX voice data file')
+        
+        tts = BVCUTextToSpeech(tmpdir, 'fr')
+        
+        # Verify both were detected
+        assert 'frf.bvcu' in tts.voice_files, "Should detect frf.bvcu"
+        assert 'frf.bnx' in tts.voice_files, "Should detect frf.bnx"
+        
+        # Verify larger .bnx was used
+        assert tts.bvcu_data['voice_data'] is not None, "Should have voice data"
+        assert len(tts.bvcu_data['voice_data']) == 26, "Should use larger .bnx data (26 bytes)"
+        
+        print("✓ TEST PASSED: .bvcu and .bnx files coexist properly")
+        return True
+
+
 def main():
     """Run all tests"""
     print("=" * 60)
@@ -127,6 +203,9 @@ def main():
         test_with_bvcu_files,
         test_hd_voice_priority,
         test_multiple_dictionaries,
+        test_bvcu_file_extension,
+        test_bvcu_hd_priority,
+        test_bvcu_and_bnx_coexistence,
     ]
     
     passed = 0
