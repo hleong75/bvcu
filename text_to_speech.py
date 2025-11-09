@@ -39,6 +39,7 @@ class BVCUTextToSpeech:
     def _check_voice_files(self):
         """Check for BVCU voice files (optional, for compatibility)"""
         required_files = [
+            'frf.bvcu',
             'frf.bnx',
             'frf.dca',
             'frf.ldi',
@@ -46,6 +47,7 @@ class BVCUTextToSpeech:
             'frf.trz',
             'frf_accent_restoration.dca',
             'frf_hd.bnx',
+            'frf_hd.bvcu',
             'frf_iv.trz.gra',
             'frf_oov.trz.gra',
             'user.userdico'
@@ -80,14 +82,34 @@ class BVCUTextToSpeech:
         
         print("Loading BVCU voice files...")
         
-        # Load binary voice data (.bnx files)
+        # Load binary voice data (.bvcu and .bnx files)
+        if 'frf.bvcu' in self.voice_files:
+            try:
+                with open(self.voice_files['frf.bvcu'], 'rb') as f:
+                    bvcu_data['voice_data'] = f.read()
+                print(f"✓ Loaded voice data from frf.bvcu ({len(bvcu_data['voice_data'])} bytes)")
+            except Exception as e:
+                print(f"Warning: Could not load frf.bvcu: {e}")
+        
         if 'frf.bnx' in self.voice_files:
             try:
                 with open(self.voice_files['frf.bnx'], 'rb') as f:
-                    bvcu_data['voice_data'] = f.read()
-                print(f"✓ Loaded voice data from frf.bnx ({len(bvcu_data['voice_data'])} bytes)")
+                    bnx_data = f.read()
+                    if bvcu_data['voice_data'] is None or len(bnx_data) > len(bvcu_data['voice_data']):
+                        bvcu_data['voice_data'] = bnx_data
+                        print(f"✓ Loaded voice data from frf.bnx ({len(bnx_data)} bytes)")
             except Exception as e:
                 print(f"Warning: Could not load frf.bnx: {e}")
+        
+        if 'frf_hd.bvcu' in self.voice_files:
+            try:
+                with open(self.voice_files['frf_hd.bvcu'], 'rb') as f:
+                    hd_data = f.read()
+                    if len(hd_data) > len(bvcu_data.get('voice_data', b'')):
+                        bvcu_data['voice_data'] = hd_data
+                        print(f"✓ Loaded HD voice data from frf_hd.bvcu ({len(hd_data)} bytes)")
+            except Exception as e:
+                print(f"Warning: Could not load frf_hd.bvcu: {e}")
         
         if 'frf_hd.bnx' in self.voice_files:
             try:
