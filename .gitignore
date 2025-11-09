@@ -42,7 +42,8 @@ Thumbs.db
 *.ogg
 
 # BVCU voice files (users need to add these themselves)
-voices/*.bvcu
+# Note: .bvcu files are now included in the repository
+# voices/*.bvcu
 voices/*.bnx
 voices/*.dca
 voices/*.ldi
