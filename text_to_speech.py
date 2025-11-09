@@ -39,6 +39,7 @@ class BVCUTextToSpeech:
     def _check_voice_files(self):
         """Check for BVCU voice files (optional, for compatibility)"""
         required_files = [
+            'claire_22k_lf.bvcu',
             'frf.bvcu',
             'frf.bnx',
             'frf.dca',
@@ -83,11 +84,25 @@ class BVCUTextToSpeech:
         print("Loading BVCU voice files...")
         
         # Load binary voice data (.bvcu and .bnx files)
+        # Priority: claire_22k_lf.bvcu > frf_hd.bvcu > frf.bvcu > frf_hd.bnx > frf.bnx (by size)
+        
+        if 'claire_22k_lf.bvcu' in self.voice_files:
+            try:
+                with open(self.voice_files['claire_22k_lf.bvcu'], 'rb') as f:
+                    claire_data = f.read()
+                    if bvcu_data['voice_data'] is None or len(claire_data) > len(bvcu_data.get('voice_data', b'')):
+                        bvcu_data['voice_data'] = claire_data
+                        print(f"✓ Loaded voice data from claire_22k_lf.bvcu ({len(claire_data)} bytes)")
+            except Exception as e:
+                print(f"Warning: Could not load claire_22k_lf.bvcu: {e}")
+        
         if 'frf.bvcu' in self.voice_files:
             try:
                 with open(self.voice_files['frf.bvcu'], 'rb') as f:
-                    bvcu_data['voice_data'] = f.read()
-                print(f"✓ Loaded voice data from frf.bvcu ({len(bvcu_data['voice_data'])} bytes)")
+                    bvcu_file_data = f.read()
+                    if bvcu_data['voice_data'] is None or len(bvcu_file_data) > len(bvcu_data.get('voice_data', b'')):
+                        bvcu_data['voice_data'] = bvcu_file_data
+                        print(f"✓ Loaded voice data from frf.bvcu ({len(bvcu_file_data)} bytes)")
             except Exception as e:
                 print(f"Warning: Could not load frf.bvcu: {e}")
         
@@ -95,7 +110,7 @@ class BVCUTextToSpeech:
             try:
                 with open(self.voice_files['frf.bnx'], 'rb') as f:
                     bnx_data = f.read()
-                    if bvcu_data['voice_data'] is None or len(bnx_data) > len(bvcu_data['voice_data']):
+                    if bvcu_data['voice_data'] is None or len(bnx_data) > len(bvcu_data.get('voice_data', b'')):
                         bvcu_data['voice_data'] = bnx_data
                         print(f"✓ Loaded voice data from frf.bnx ({len(bnx_data)} bytes)")
             except Exception as e:

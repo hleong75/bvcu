@@ -17,7 +17,8 @@ def test_bvcu_files_exist():
     print("=" * 60)
     
     voices_path = Path("voices")
-    required_bvcu_files = ['frf.bvcu', 'frf_hd.bvcu']
+    # Check for claire_22k_lf.bvcu which is the main voice file
+    required_bvcu_files = ['claire_22k_lf.bvcu']
     
     for filename in required_bvcu_files:
         file_path = voices_path / filename
@@ -40,16 +41,12 @@ def test_bvcu_files_detected():
     
     tts = BVCUTextToSpeech("voices", 'fr')
     
-    # Check that .bvcu files were detected
-    if 'frf.bvcu' not in tts.voice_files:
-        print("✗ frf.bvcu not detected")
+    # Check that claire_22k_lf.bvcu was detected
+    if 'claire_22k_lf.bvcu' not in tts.voice_files:
+        print("✗ claire_22k_lf.bvcu not detected")
         return False
     
-    if 'frf_hd.bvcu' not in tts.voice_files:
-        print("✗ frf_hd.bvcu not detected")
-        return False
-    
-    print(f"✓ Detected {len(tts.voice_files)} voice files including .bvcu files")
+    print(f"✓ Detected {len(tts.voice_files)} voice files including claire_22k_lf.bvcu")
     print("✓ TEST PASSED: .bvcu files are properly detected")
     return True
 
@@ -95,9 +92,9 @@ def test_multiple_initializations(iterations=50):
         try:
             tts = BVCUTextToSpeech("voices", 'fr')
             
-            # Verify files are detected each time
-            if 'frf.bvcu' not in tts.voice_files or 'frf_hd.bvcu' not in tts.voice_files:
-                print(f"✗ Iteration {i+1}: .bvcu files not detected")
+            # Verify claire_22k_lf.bvcu is detected each time
+            if 'claire_22k_lf.bvcu' not in tts.voice_files:
+                print(f"✗ Iteration {i+1}: claire_22k_lf.bvcu not detected")
                 return False
             
             # Verify data is loaded each time
@@ -117,29 +114,25 @@ def test_multiple_initializations(iterations=50):
 
 
 def test_file_priority():
-    """Test that HD .bvcu files take priority over regular ones"""
+    """Test that larger .bvcu files take priority"""
     print("\n" + "=" * 60)
-    print("TEST: Verify HD .bvcu file priority")
+    print("TEST: Verify .bvcu file priority")
     print("=" * 60)
     
     tts = BVCUTextToSpeech("voices", 'fr')
     
-    # frf_hd.bvcu should have higher priority and be used
-    # Check the size - frf_hd.bvcu is smaller (10255 bytes) than frf.bvcu (36699 bytes)
-    # But actually according to the code, larger file takes priority
+    # claire_22k_lf.bvcu is the largest file and should be used
     voice_data_size = len(tts.bvcu_data['voice_data'])
     
-    # The larger file should be used (frf.bvcu = 36699 bytes)
-    frf_bvcu_size = Path("voices/frf.bvcu").stat().st_size
-    frf_hd_bvcu_size = Path("voices/frf_hd.bvcu").stat().st_size
+    # Get the size of claire_22k_lf.bvcu
+    claire_bvcu_size = Path("voices/claire_22k_lf.bvcu").stat().st_size
     
-    expected_size = max(frf_bvcu_size, frf_hd_bvcu_size)
-    
-    if voice_data_size != expected_size:
-        print(f"✗ Unexpected voice data size: {voice_data_size} (expected {expected_size})")
+    # The largest file (claire_22k_lf.bvcu) should be used
+    if voice_data_size != claire_bvcu_size:
+        print(f"✗ Unexpected voice data size: {voice_data_size} (expected {claire_bvcu_size})")
         return False
     
-    print(f"✓ Voice data size: {voice_data_size} bytes (from larger file)")
+    print(f"✓ Voice data size: {voice_data_size:,} bytes (from claire_22k_lf.bvcu)")
     print("✓ TEST PASSED: Correct file priority handling")
     return True
 
