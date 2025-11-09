@@ -49,8 +49,17 @@ pip3 install -r requirements.txt
 
 ## Voice Files (Optional)
 
-The program works out-of-the-box without any additional voice files. However, if you have BVCU voice files from Nuance Vocalizer, you can place them in the `voices/` directory for compatibility:
+The program works out-of-the-box without any additional voice files using pyttsx3 with eSpeak. 
 
+**Important Note about BVCU Files:**
+If you have BVCU voice files from Nuance Vocalizer, you can place them in the `voices/` directory. The program will detect and report them, but **cannot actually use them** for synthesis because:
+- BVCU is a proprietary binary format from Nuance Communications
+- pyttsx3 with eSpeak uses completely different voice data format
+- Using BVCU files requires the proprietary Nuance Vocalizer SDK
+
+The program will use eSpeak for actual speech synthesis regardless of whether BVCU files are present.
+
+BVCU files that can be placed in `voices/` directory (for detection only):
 - `frf.bnx` - Binary voice data
 - `frf.dca` - Pronunciation and phonetic data
 - `frf.ldi` - Linguistic data
@@ -61,8 +70,6 @@ The program works out-of-the-box without any additional voice files. However, if
 - `frf_iv.trz.gra` - Transcription grammar rules
 - `frf_oov.trz.gra` - Out-of-vocabulary transcription rules
 - `user.userdico` - User dictionary for custom pronunciations
-
-Note: These files are optional and not required for the program to function.
 
 See `voices/README.md` for more details about BVCU voice file formats.
 
@@ -177,7 +184,13 @@ This is a **fully functional implementation** that generates real audio output. 
 - ✅ Free and open-source
 - ✅ Cross-platform (Linux, macOS, Windows)
 
-While originally designed for BVCU files from Nuance Vocalizer SDK, this implementation provides a practical, working alternative using open-source technologies.
+**About BVCU Support:**
+- ✅ Detects BVCU voice files if present in voices/ directory
+- ✅ Loads and parses BVCU file metadata
+- ❌ Cannot use BVCU data for synthesis (requires proprietary Nuance SDK)
+- ℹ️ Uses eSpeak engine for actual speech synthesis
+
+While originally designed for BVCU files from Nuance Vocalizer SDK, this implementation provides a practical, working alternative using open-source technologies. BVCU files are detected and reported but not used for synthesis.
 
 ## Requirements
 

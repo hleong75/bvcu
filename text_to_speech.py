@@ -3,9 +3,11 @@
 Text-to-Speech Converter with Full Synthesis Support
 
 This program converts text to speech with full functional audio synthesis.
-It supports multiple languages including French, using offline TTS engines.
-While originally designed for BVCU voice files, this implementation provides
-a complete, working TTS solution without requiring proprietary voice files.
+It supports multiple languages including French, using offline TTS engines (pyttsx3/eSpeak).
+
+Note: While the program can detect and load BVCU voice files from Nuance Vocalizer,
+it cannot actually use them for synthesis. BVCU is a proprietary format that requires
+the Nuance Vocalizer SDK. The program uses eSpeak for all speech synthesis.
 """
 
 import os
@@ -19,14 +21,19 @@ import struct
 
 
 class BVCUTextToSpeech:
-    """Fully functional Text-to-Speech converter with audio synthesis"""
+    """Text-to-Speech converter using pyttsx3/eSpeak
+    
+    Note: Can detect BVCU files but cannot use them (proprietary format).
+    All synthesis is done with eSpeak regardless of BVCU file presence.
+    """
     
     def __init__(self, voice_path, language='fr'):
         """
         Initialize the TTS engine
         
         Args:
-            voice_path (str): Path to directory containing voice files (for compatibility)
+            voice_path (str): Path to directory containing voice files (BVCU files 
+                            will be detected but not used for synthesis)
             language (str): Language code for synthesis (default: 'fr' for French)
         """
         self.voice_path = Path(voice_path)
@@ -37,7 +44,7 @@ class BVCUTextToSpeech:
         self._initialize_engine()
         
     def _check_voice_files(self):
-        """Check for BVCU voice files (optional, for compatibility)"""
+        """Check for BVCU voice files (detected but not used for synthesis)"""
         required_files = [
             'claire_22k_lf.bvcu',
             'frf.bvcu',
@@ -70,7 +77,11 @@ class BVCUTextToSpeech:
         return voice_files
     
     def _load_bvcu_files(self):
-        """Load and parse BVCU voice files if available"""
+        """Load and parse BVCU voice files if available
+        
+        Note: Files are loaded for compatibility/detection but cannot be used
+        for synthesis as pyttsx3/eSpeak does not support BVCU format.
+        """
         bvcu_data = {
             'voice_data': None,
             'dictionary': None,
@@ -183,12 +194,12 @@ class BVCUTextToSpeech:
                     print(f"Warning: Could not load {config_file}: {e}")
         
         if any([bvcu_data['voice_data'], bvcu_data['dictionary'], bvcu_data['linguistic']]):
-            print("✓ BVCU voice files successfully loaded and ready for use")
+            print("✓ BVCU voice files loaded (for information only - cannot be used with eSpeak)")
         
         return bvcu_data
     
     def _initialize_engine(self):
-        """Initialize the TTS engine with BVCU data if available"""
+        """Initialize the TTS engine"""
         try:
             self.engine = pyttsx3.init()
             
@@ -199,23 +210,11 @@ class BVCUTextToSpeech:
             volume = self.engine.getProperty('volume')
             self.engine.setProperty('volume', 1.0)  # Maximum volume
             
-            # Apply BVCU voice data if loaded
+            # Note about BVCU files
             if self.bvcu_data and (self.bvcu_data['voice_data'] or self.bvcu_data['dictionary']):
-                print("✓ Applying BVCU voice configuration to TTS engine")
-                
-                # Use BVCU data to enhance voice quality
-                # Note: In a real implementation, this would parse and apply BVCU parameters
-                # For now, we adjust engine parameters based on BVCU data presence
-                if self.bvcu_data['voice_data']:
-                    # Adjust rate based on voice data size (larger data = more detailed voice)
-                    voice_quality_factor = min(len(self.bvcu_data['voice_data']) / 10000, 1.5)
-                    adjusted_rate = int(rate * (1.0 / voice_quality_factor))
-                    self.engine.setProperty('rate', max(adjusted_rate, rate - 50))
-                    print(f"✓ Voice rate adjusted based on BVCU data: {adjusted_rate}")
-                
-                if self.bvcu_data['dictionary']:
-                    # Dictionary data improves pronunciation
-                    print(f"✓ Using BVCU dictionary data for enhanced pronunciation")
+                print("ℹ Note: BVCU files detected but cannot be used by pyttsx3/eSpeak engine")
+                print("ℹ BVCU files require Nuance Vocalizer SDK (proprietary)")
+                print("ℹ The program will use eSpeak for synthesis instead")
             
             # Try to find and set voice matching the specified language
             voices = self.engine.getProperty('voices')
@@ -242,10 +241,7 @@ class BVCUTextToSpeech:
                 
                 if selected_voice:
                     self.engine.setProperty('voice', selected_voice.id)
-                    if self.bvcu_data and self.bvcu_data['voice_data']:
-                        print(f"✓ Using voice with BVCU enhancement: {selected_voice.name}")
-                    else:
-                        print(f"✓ Using voice: {selected_voice.name}")
+                    print(f"✓ Using voice: {selected_voice.name}")
                 elif self.language == 'fr':
                     # Specific fallback message for French
                     print(f"ℹ French voice not found, using default voice")
@@ -271,9 +267,9 @@ class BVCUTextToSpeech:
         print(f"Synthesizing text: '{text[:80]}{'...' if len(text) > 80 else ''}'")
         print(f"Language: {self.language}")
         
-        # Report if BVCU files are being used
+        # Report if BVCU files are detected (but note they cannot be used)
         if self.bvcu_data and (self.bvcu_data['voice_data'] or self.bvcu_data['dictionary']):
-            print("✓ Using BVCU voice files for enhanced synthesis")
+            print("ℹ BVCU files detected (but not used - pyttsx3/eSpeak cannot read this format)")
             if self.bvcu_data['voice_data']:
                 print(f"  - Voice data: {len(self.bvcu_data['voice_data'])} bytes")
             if self.bvcu_data['dictionary']:
@@ -296,8 +292,6 @@ class BVCUTextToSpeech:
                 for i in range(10):  # Wait up to 1 second for file to appear
                     if os.path.exists(output_file):
                         print(f"✓ Audio saved to: {output_file}")
-                        if self.bvcu_data and self.bvcu_data['voice_data']:
-                            print("✓ Audio generated using BVCU voice data")
                         return True
                     time.sleep(0.1)
                 
@@ -306,8 +300,6 @@ class BVCUTextToSpeech:
             
             # Otherwise, speak the text directly
             print("✓ Synthesis complete. Playing audio...")
-            if self.bvcu_data and self.bvcu_data['voice_data']:
-                print("✓ Using BVCU-enhanced voice for playback")
             self.engine.say(text)
             self.engine.runAndWait()
             print("✓ Playback complete.")

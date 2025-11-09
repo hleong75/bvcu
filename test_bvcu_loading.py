@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
 Test script specifically for BVCU file loading functionality
+
+Note: These tests verify that BVCU files are correctly detected and loaded
+into memory. However, the actual TTS synthesis uses pyttsx3/eSpeak and cannot
+use BVCU data (proprietary format requiring Nuance Vocalizer SDK).
 """
 
 import os
@@ -66,7 +70,7 @@ def test_with_bvcu_files():
         assert 'frf.oso' in tts.bvcu_data['configuration'], "Should have orthographic config"
         assert 'frf.trz' in tts.bvcu_data['configuration'], "Should have transcription config"
         
-        print("✓ TEST PASSED: Correctly loads and uses BVCU files")
+        print("✓ TEST PASSED: Correctly loads BVCU files (detection only)")
         return True
 
 
