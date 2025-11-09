@@ -247,7 +247,31 @@ class BVCUTextToSpeech:
                     print(f"ℹ French voice not found, using default voice")
             
         except Exception as e:
-            print(f"Warning: Could not fully initialize TTS engine: {e}")
+            error_msg = str(e).lower()
+            if 'espeak' in error_msg or 'no module' in error_msg or 'driver' in error_msg:
+                print("=" * 70)
+                print("ERROR: Text-to-Speech engine (eSpeak) is not installed!")
+                print("=" * 70)
+                print("")
+                print("The program requires eSpeak or eSpeak-ng to be installed on your system.")
+                print("")
+                print("Installation instructions:")
+                print("")
+                print("  Linux (Ubuntu/Debian):")
+                print("    sudo apt-get update")
+                print("    sudo apt-get install espeak espeak-ng")
+                print("")
+                print("  macOS:")
+                print("    brew install espeak")
+                print("")
+                print("  Windows:")
+                print("    Download and install from: http://espeak.sourceforge.net/")
+                print("")
+                print("After installing eSpeak, please run the program again.")
+                print("=" * 70)
+            else:
+                print(f"Warning: Could not fully initialize TTS engine: {e}")
+            self.engine = None
     
     def synthesize(self, text, output_file=None):
         """
@@ -278,7 +302,14 @@ class BVCUTextToSpeech:
                 print(f"  - Linguistic data: {len(self.bvcu_data['linguistic'])} bytes")
         
         if not self.engine:
-            print("Error: TTS engine not initialized.")
+            print("=" * 70)
+            print("ERROR: TTS engine not initialized.")
+            print("=" * 70)
+            print("")
+            print("This usually means eSpeak/eSpeak-ng is not installed on your system.")
+            print("Please install eSpeak following the instructions above, then try again.")
+            print("")
+            print("=" * 70)
             return False
         
         try:
